@@ -1,0 +1,9 @@
+#!/bin/bash
+
+kernel=$(uname -r)
+cpu=$(lscpu | awk '/^Model name/ {for (i=3; i<=NF; i++) printf "%s%s", $i, (i<NF ? " " : "\n")}')
+
+echo "Your hostname is : $HOSTNAME
+Operating System : $OSTYPE
+Kernel 		 : $kernel
+CPU Name	 : $cpu	"

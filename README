@@ -1,2 +1,14 @@
 So this is the first day of me creating a linux project. So basically, this project is to check the system of our hardware.
 The first thing i will do, is to create system-info. later dude.
+
+The system info will included info about the hardware we use, such as :
+- Hostname (done)
+- Operating system (done)
+- Kernel version (done)
+- CPU information (done)
+- RAM usage
+- Disk usage
+- Uptime
+- Current user
+- IP addresses
+- Default gateway 
