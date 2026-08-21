@@ -2,8 +2,7 @@
 
 kernel=$(uname -r)
 cpu=$(lscpu | awk '/^Model name/ {for (i=3; i<=NF; i++) printf "%s%s", $i, (i<NF ? " " : "\n")}')
-ram_total=$(free -h | awk '/^Mem/ {print $2}')
-ram_used=$(free -h | awk '/^Mem/ {print $3}')
+read ram_total ram_used <<< $(free -h | awk '/^Mem/ {print $2,$3}')
 
 
 echo "Your hostname is : $HOSTNAME
