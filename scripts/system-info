@@ -1,13 +1,13 @@
 #!/bin/bash
 
-os=$(awk '/^NAME=/ {sub(/^NAME=/, "NAME= ");sub(/^"/, "",$2);sub(/"$/, "",$NF);print $2 " " $NF }' /etc/os-release)
+source /etc/os-release
 kernel=$(uname -r)
 cpu=$(lscpu | awk '/^Model name/ {for (i=3; i<=NF; i++) printf "%s%s", $i, (i<NF ? " " : "\n")}')
 read ram_total ram_used <<< $(free -h | awk '/^Mem/ {print $2,$3}')
 
 
 echo "Your hostname is : $HOSTNAME
-Operating System : $os
+Operating System : $PRETTY_NAME
 Kernel 		 : $kernel
 CPU Name	 : $cpu	
 Memory Total	 : $ram_total
