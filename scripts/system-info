@@ -1,14 +1,14 @@
 #!/bin/bash
 
 source /etc/os-release
-kernel=$(uname -r)
 cpu=$(lscpu | awk '/^Model name/ {for (i=3; i<=NF; i++) printf "%s%s", $i, (i<NF ? " " : "\n")}')
 read ram_total ram_used <<< $(free -h | awk '/^Mem/ {print $2,$3}')
 
 
-echo "Your hostname is : $HOSTNAME
+echo "Hostname	 : $HOSTNAME
 Operating System : $PRETTY_NAME
-Kernel 		 : $kernel
+Kernel 		 : $(uname -r)
 CPU Name	 : $cpu	
 Memory Total	 : $ram_total
-Memory Used	 : $ram_used"
+Memory Used	 : $ram_used
+User		 : $USER"
