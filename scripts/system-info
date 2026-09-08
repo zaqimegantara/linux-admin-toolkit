@@ -1,14 +1,30 @@
 #!/bin/bash
 
-source /etc/os-release
-cpu=$(lscpu | awk '/^Model name/ {for (i=3; i<=NF; i++) printf "%s%s", $i, (i<NF ? " " : "\n")}')
-read ram_total ram_used <<< $(free -h | awk '/^Mem/ {print $2,$3}')
+  source /etc/os-release
 
+  kernel=$(uname -r)
+  cpu=$(LC_ALL=C lscpu | awk -F: '/^Model name:/ {
+      sub(/^[[:space:]]+/, "", $2)
+      print $2
+  }')
+  read -r ram_total ram_used < <(free -h | awk '/^Mem:/ {print $2, $3}')
 
-echo "Hostname	 : $HOSTNAME
-Operating System : $PRETTY_NAME
-Kernel 		 : $(uname -r)
-CPU Name	 : $cpu	
-Memory Total	 : $ram_total
-Memory Used	 : $ram_used
-User		 : $USER"
+  printf '%-18s : %s\n' \
+      "Hostname" "$HOSTNAME" \
+      "Operating system" "$PRETTY_NAME" \
+      "Kernel version" "$kernel" \
+      "CPU" "$cpu" \
+      "RAM total" "$ram_total" \
+      "RAM used" "$ram_used" \
+      "Uptime" "$(uptime -p)" \
+      "Current user" "$(id -un)"
+
+  printf '\nDisk usage:\n'
+  df -h /
+
+  printf '\nIP addresses:\n'
+  ip -brief address show up
+
+  printf '\nDefault routes (gateway after "via"):\n'
+  ip -4 route show default
+  ip -6 route show default
