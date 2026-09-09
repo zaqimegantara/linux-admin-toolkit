@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+
+set -uo pipefail
+
+readonly DEFAULT_THRESHOLD=80
+
+threshold="$DEFAULT_THRESHOLD"
+warning_found=0
+
+usage() {
+    printf 'Usage: %s [-t threshold]\n' "$0"
+}
+
+error() {
+    printf 'ERROR: %s\n' "$*" >&2
+}
+
+# Parse command-line options
+while getopts ":t:h" opt; do
+    case "$opt" in
+        t)
+            threshold="$OPTARG"
+            ;;
+        h)
+            usage
+            exit 0
+            ;;
+        :)
+            error "Option -$OPTARG requires an argument."
+            usage >&2
+            exit 2
+            ;;
+        \?)
+            error "Unknown option: -$OPTARG"
+            usage >&2
+            exit 2
+            ;;
+    esac
+done
+
+# Validate threshold
+if ! [[ "$threshold" =~ ^[0-9]+$ ]]; then
+    error "Threshold must be an integer."
+    exit 2
+fi
+
+if (( threshold < 1 || threshold > 100 )); then
+    error "Threshold must be between 1 and 100."
+    exit 2
+fi
+
+# Make df output predictable
+export LC_ALL=C
+
+# Get filesystem information.
+# Exclude pseudo-filesystems that normally aren't useful for disk monitoring.
+if ! disk_data=$(df -P \
+    -x tmpfs \
+    -x devtmpfs \
+    -x squashfs \
+    2>/dev/null); then
+    error "Failed to retrieve filesystem information."
+    exit 2
+fi
+
+# Process filesystems
+while read -r filesystem blocks used available capacity mountpoint; do
+
+    # Skip df header
+    [[ "$filesystem" == "Filesystem" ]] && continue
+
+    usage_percent="${capacity%\%}"
+
+    # Defensive validation
+    if ! [[ "$usage_percent" =~ ^[0-9]+$ ]]; then
+        error "Invalid usage value for $filesystem: $capacity"
+        exit 2
+    fi
+
+    if (( usage_percent >= threshold )); then
+        printf 'WARNING: %-25s mounted on %-20s is %s%% full\n' \
+            "$filesystem" "$mountpoint" "$usage_percent"
+
+        warning_found=1
+    fi
+
+done <<< "$disk_data"
+
+if (( warning_found )); then
+    exit 1
+fi
+
+printf 'OK: All monitored filesystems are below %s%% usage.\n' "$threshold"
+exit 0
