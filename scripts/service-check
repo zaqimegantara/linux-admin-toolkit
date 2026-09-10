@@ -1,0 +1,31 @@
+#!/bin/bash
+
+if [[ $# -eq 0 ]]; then
+    echo "Usage: $0 <service> [service...]"
+    exit 2
+fi
+
+result=0
+
+for service in "$@"; do
+
+    if ! systemctl cat "$service" &>/dev/null; then
+        echo "$service: service does not exist"
+        result=2
+        continue
+    fi
+
+    if systemctl is-active --quiet "$service"; then
+        echo "$service: running"
+    else
+        echo "$service: not running"
+
+        # Don't overwrite a more serious error (2)
+        if [[ $result -eq 0 ]]; then
+            result=1
+        fi
+    fi
+
+done
+
+exit "$result"
